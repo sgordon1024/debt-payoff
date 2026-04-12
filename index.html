@@ -885,7 +885,8 @@ function LockScreen({ onUnlock }) {
     const next = pin + d;
     setPin(next);
     if (next.length === 4) {
-      setTimeout(() => {
+      // Show the 4th dot briefly, then check immediately
+      requestAnimationFrame(() => {
         if (next === CORRECT_PIN) {
           sessionStorage.setItem('_auth', '1');
           onUnlock();
@@ -894,7 +895,7 @@ function LockScreen({ onUnlock }) {
           setHint('Wrong PIN — try again');
           setTimeout(() => { setShake(false); setPin(''); setHint(''); }, 700);
         }
-      }, 150);
+      });
     }
   }
 
