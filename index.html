@@ -10,6 +10,7 @@
   <script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
   <script src="https://unpkg.com/recharts@2.10.3/umd/Recharts.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+  <script src="DATA.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -135,92 +136,7 @@ const {
   XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine,
 } = Recharts;
 
-/* ══════════════════════════════════════════════════
-   CONFIG — add your Sequence.io API key here
-══════════════════════════════════════════════════ */
-const SEQUENCE_API_KEY = '97c5849cebb306dae02f54ba018431bbe2f07fe4e47f850dd7124543523f8476';
-const SEQUENCE_API_BASE = 'https://api.sequence.money/v1';
-
-/* ══════════════════════════════════════════════════
-   DEBT DATA  (static fallback)
-   Unknown balances are marked estimated: true
-══════════════════════════════════════════════════ */
-const DEBTS = [
-  {
-    id: 'upstart', name: 'Upstart Personal Loan', short: 'Upstart',
-    balance: 9737.51, apr: 31.75, payment: 2393, minimum: 424.66,
-    color: '#ef4444', priority: 1, type: 'loan',
-    note: 'All freed minimums routed here — cascades to Amex when paid off',
-  },
-  {
-    id: 'amex', name: 'American Express', short: 'Amex',
-    balance: 10014.04, apr: 29.99, payment: 396, minimum: 394.81,
-    color: '#3b82f6', priority: 2, type: 'credit',
-    note: 'Minimum only until Upstart is paid off',
-  },
-  {
-    id: 'bestbuy', name: 'Best Buy (Citibank)', short: 'Best Buy',
-    balance: 5026.07, apr: 29.10, payment: 70, minimum: 69,
-    color: '#f97316', priority: 3, type: 'credit',
-    note: 'Minimum only — stop new purchases (Amazon/Prime charges found)',
-  },
-  {
-    id: 'wellsfargo', name: 'Wells Fargo (Mattress)', short: 'Wells Fargo',
-    balance: 1031.90, apr: 28.99, payment: 150, minimum: 41.37,
-    color: '#fbbf24', priority: 4, type: 'credit',
-    danger: true, deferredDeadline: 'Jan 24, 2027',
-    note: 'Paying above minimum to clear deferred interest before deadline',
-  },
-  {
-    id: 'chase', name: 'Chase (Whole Foods Prime)', short: 'Chase',
-    balance: 1998.39, apr: 27.49, payment: 36, minimum: 35,
-    color: '#22d3ee', priority: 5, type: 'credit',
-    note: 'Minimum only',
-  },
-  {
-    id: 'apple', name: 'Apple Card', short: 'Apple',
-    balance: 1423.84, apr: 25.49, payment: 46, minimum: 46,
-    color: '#a855f7', priority: 6, type: 'credit',
-  },
-  {
-    id: 'upgrade', name: 'Upgrade Credit Card', short: 'Upgrade',
-    balance: 3098.96, apr: 20.99, payment: 208, minimum: 206.88,
-    color: '#ec4899', priority: 7, type: 'credit',
-  },
-  {
-    id: 'roadrunner', name: 'Roadrunner (Dirt Bike)', short: 'Moto',
-    balance: 2428.91, apr: 14.74, payment: 118, minimum: 117.30,
-    color: '#14b8a6', priority: 8, type: 'loan',
-  },
-  {
-    id: 'fidelity', name: 'Fidelity Visa (0% Promo)', short: 'Fidelity',
-    balance: 2760, apr: 0, payment: 170, minimum: 170,
-    color: '#6366f1', priority: 9, type: 'credit',
-    promoEnd: 'Sep 2027',
-    note: 'True 0% until Sep 2027 — pay minimums only',
-  },
-  // Long-term loans — in the avalanche cascade after consumer debts clear
-  {
-    id: 'van', name: 'Van (U.S. Bank)', short: 'Van',
-    balance: 185793.08, apr: 8.74, payment: 1700, minimum: 1690.71,
-    color: '#78716c', priority: 10, type: 'loan', longTerm: true,
-    note: 'REC loan, matures Jan 2045. $850 biweekly autopay (~$1,700/mo). Cascade hits here after Fidelity.',
-  },
-  {
-    id: 'aidvantage', name: 'Aidvantage (Federal)', short: 'Federal',
-    balance: 89000, apr: 6.625, payment: 491, minimum: 491,
-    color: '#64748b', priority: 11, type: 'loan', longTerm: true,
-    note: 'Federal student loan — cascade hits after Van is paid off.',
-  },
-  {
-    id: 'earnest', name: 'Earnest (Private Student)', short: 'Earnest',
-    balance: 13060.97, apr: 5.65, payment: 194.18, minimum: 194.18,
-    color: '#0ea5e9', priority: 12, type: 'loan', longTerm: true,
-    note: 'Private student loan — final debt in the cascade.',
-  },
-];
-
-const START_DATE = new Date(2026, 3, 11); // April 11 2026 — official start
+// CONFIG, DEBTS, START_DATE, FLOW_DATA, and CORRECT_PIN are loaded from DATA.js
 
 /* ══════════════════════════════════════════════════
    SIMULATION ENGINE — avalanche with cascade
@@ -625,119 +541,7 @@ function StatCard({ lbl, value, sub, color, className }) {
   );
 }
 
-/* ══════════════════════════════════════════════════
-   MONEY FLOW DATA
-══════════════════════════════════════════════════ */
-const FLOW_DATA = {
-  id: 'paycheck', label: 'Paycheck', emoji: '💰',
-  sublabel: 'Biweekly direct deposit — every dollar is allocated automatically via Sequence',
-  color: '#22c55e', type: 'income',
-  children: [{
-    id: 'needs', label: 'Needs Pod', emoji: '🔧',
-    sublabel: 'Full paycheck flows into Needs first, then distributes to every bucket below',
-    color: '#6366f1', type: 'pod',
-    payoffRef: ['upstart','amex','bestbuy','wellsfargo','chase','apple','upgrade','roadrunner','fidelity'],
-    children: [
-      {
-        id: 'student-loans-pod', label: 'Student Loans', emoji: '🍎',
-        amount: 350, balance: 0, color: '#8b5cf6', type: 'pod',
-        apr: 6.1,
-        payoffRef: ['aidvantage','earnest'],
-        sublabel: '$350/paycheck split between Aidvantage and Earnest',
-        children: [
-          { id: 'aidvantage', label: 'Aidvantage', emoji: '🎓', amount: 250, color: '#a78bfa', type: 'account', apr: 6.625, payoffRef: ['aidvantage'], note: 'Monthly minimum payment' },
-          { id: 'earnest',   label: 'Earnest',    emoji: '🎓', amount: 100, color: '#a78bfa', type: 'account', apr: 5.65,  payoffRef: ['earnest'],    note: 'Monthly minimum · $194.18/mo · 5.65% APR' },
-        ]
-      },
-      {
-        id: 'loans-pod', label: 'Loans', emoji: '🏦',
-        amount: 940, balance: 100, color: '#ef4444', type: 'pod',
-        apr: 31.75,
-        payoffRef: ['upstart','wellsfargo','fidelity'],
-        sublabel: '$940/paycheck — paid in strict priority order',
-        children: [
-          { id: 'wf-loan',        label: 'Wells Fargo',          emoji: '⚠️',  amount: 75,   color: '#f87171', type: 'account', apr: 28.99, payoffRef: ['wellsfargo'], note: 'Paid FIRST — deferred interest ends Jan 24, 2027' },
-          { id: 'fidelity-loan',  label: 'Fidelity',             emoji: '🏦',  amount: null, amountLabel: 'Fixed', color: '#f87171', type: 'account', apr: 0, payoffRef: ['fidelity'], note: '0% promo rate — paid before Upstart' },
-          { id: 'upstart-fixed',  label: 'Upstart (fixed)',      emoji: '🎯',  amount: null, amountLabel: 'Fixed', color: '#ef4444', type: 'account', apr: 31.75, payoffRef: ['upstart'], note: 'Fixed monthly allocation' },
-          { id: 'upstart-loans-r',label: 'Upstart (remainder)',  emoji: '🔥',  amount: null, amountLabel: '100% remainder', color: '#dc2626', type: 'account', apr: 31.75, payoffRef: ['upstart'], note: 'Every leftover dollar → avalanche target' },
-        ]
-      },
-      {
-        id: 'cc-pod', label: 'Credit Cards', emoji: '💳',
-        amount: 1000, balance: 0, color: '#3b82f6', type: 'pod',
-        apr: 29.99,
-        payoffRef: ['amex','bestbuy','chase','apple','upgrade'],
-        sublabel: '$1,000/paycheck — minimums first, overflow held in pod',
-        children: [
-          { id: 'amex-card',    label: 'Amex',        emoji: '💳', amount: 396, color: '#60a5fa', type: 'account', apr: 29.99, payoffRef: ['amex'],    note: 'Minimum ~$395 · balance $10,014 · 29.99% APR' },
-          { id: 'bestbuy-card', label: 'Best Buy',    emoji: '💳', amount: 70,  color: '#60a5fa', type: 'account', apr: 29.10, payoffRef: ['bestbuy'], note: 'Minimum ~$70 · balance $5,026 · 29.10% APR' },
-          { id: 'cc-buffer',    label: 'Pod buffer',  emoji: '💰', amount: null, amountLabel: 'Remainder', color: '#3b82f6', type: 'account', note: 'Held in pod — cascades to Upstart after Amex is paid off' },
-        ]
-      },
-      { id: 'bills',       label: 'Bills',                  emoji: '🧾', amount: 235,  balance: 124.00, color: '#f59e0b', type: 'leaf', dueDay: 15, note: 'Fixed recurring bills' },
-      { id: 'van-maint',   label: 'Van Maintenance',        emoji: '🚐', amount: 60,   balance: 300.00, color: '#10b981', type: 'leaf', note: 'Van repairs & upkeep fund' },
-      { id: 'groceries',   label: 'Groceries / Food / Bar', emoji: '🍔', amount: 200,  balance: 273.05, color: '#10b981', type: 'leaf', note: 'Food & dining' },
-      { id: 'diesel',      label: 'Diesel / Van Misc',      emoji: '⛽', amount: 150,  balance: 338.92, color: '#10b981', type: 'leaf', note: 'Fuel & van miscellaneous' },
-      { id: 'progressive', label: 'Progressive',            emoji: '🛡️', amount: 75,   balance: 11.52,  color: '#10b981', type: 'leaf', dueDay: 20, note: 'Auto insurance' },
-      { id: 'tmobile',     label: 'T-Mobile',               emoji: '📱', amount: 100,  balance: 0.15,   color: '#10b981', type: 'leaf', dueDay: 10, note: 'Phone plan' },
-      { id: 'pub-storage', label: 'Public Storage',         emoji: '📦', amount: 150,  balance: 10.00,  color: '#10b981', type: 'leaf', dueDay: 1,  note: 'Storage unit' },
-      { id: 'starlink',    label: 'Starlink',               emoji: '🛰️', amount: 2.50, balance: 1.04,   color: '#64748b', type: 'leaf', dueDay: 14, note: '⏸ Paused — $2.50 placeholder · $85 when active' },
-      { id: 'subscriptions',label: 'Subscriptions',         emoji: '📺', amount: 125,  balance: 57.49,  color: '#8b5cf6', type: 'leaf', dueDay: 3,  note: 'Netflix, HBO, Spotify, Claude.ai & more · earliest charge 3rd' },
-      { id: 'tt-dues',     label: 'Thousand Trails',        emoji: '🏕️', amount: 55,   balance: 17.46,  color: '#10b981', type: 'leaf', dueDay: 23, note: 'Campground membership dues' },
-      { id: 'upstart-needs',label: 'Upstart (100% remainder)', emoji: '🔥', amount: null, amountLabel: '100% of what\'s left', balance: 0, color: '#ef4444', type: 'account', apr: 31.75, payoffRef: ['upstart'], note: '🎯 Avalanche engine — every unallocated dollar destroys this loan' },
-    ]
-  },
-  {
-    id: 'wants', label: 'Wants Pod', emoji: '🎁',
-    sublabel: 'Discretionary spending, savings goals, and van upgrade funds',
-    color: '#a855f7', type: 'pod',
-    children: [
-      {
-        id: 'checking', label: 'Checking', emoji: '🏦',
-        balance: 27.52, color: '#6366f1', type: 'pod',
-        sublabel: 'Main spending account — distributes to lifestyle and van upgrade buckets',
-        children: [
-          { id: 'vacations',  label: 'Vacations',         emoji: '🌴', balance: 98.42, color: '#10b981', type: 'leaf', note: 'Travel savings goal' },
-          { id: 'weed',       label: 'Weed',              emoji: '🌿', balance: 0,     color: '#10b981', type: 'leaf', note: '20% of 10% paycheck remainder — direct from Sequence rule' },
-          { id: 'suspension', label: 'Suspension Upgrade',emoji: '🔩', balance: 32.38, color: '#f59e0b', type: 'leaf', note: 'Van upgrade fund' },
-          { id: 'bumper',     label: 'Bumper / Winch',    emoji: '🚐', balance: 0,     color: '#f59e0b', type: 'leaf', note: 'Van upgrade fund' },
-          { id: 'rear-door',  label: 'Rear Door Storage', emoji: '🗄️', balance: 0,     color: '#f59e0b', type: 'leaf', note: 'Van upgrade fund' },
-        ]
-      },
-      { id: 'pay-autosave',   label: 'Pay Autosave',  emoji: '💸',  balance: 0.99, color: '#10b981', type: 'leaf', note: 'Automatic savings rule' },
-      { id: 'growth',         label: 'Growth',        emoji: '📈',  balance: 0,    color: '#22c55e', type: 'leaf', note: 'Investing / long-term growth' },
-      { id: 'spend',          label: 'Spend',         emoji: '💳',  balance: 0.07, color: '#6366f1', type: 'leaf', note: 'General discretionary spend' },
-      { id: 'to-expense',     label: 'To Expense',    emoji: '🧾',  balance: 0,    color: '#6366f1', type: 'leaf', note: 'Work expense reimbursement tracking' },
-      { id: 'reserve',        label: 'Reserve',       emoji: '🛡️',  balance: 0,    color: '#10b981', type: 'leaf', note: 'Emergency / rainy day reserve' },
-      { id: 'affirm',         label: 'Affirm',        emoji: '💳',  balance: 0,    color: '#f59e0b', type: 'account', note: 'Buy now, pay later account' },
-      { id: 'capital-one',    label: 'Capital One',   emoji: '💳',  balance: 0,    color: '#ef4444', type: 'account', note: 'Credit card' },
-      { id: 'dad',            label: 'Dad',           emoji: '👨‍👦', color: '#64748b', type: 'leaf', note: 'Manually linked external account' },
-    ]
-  },
-  {
-    id: 'overflow', label: 'Overflow Can', emoji: '🪣',
-    sublabel: 'Catches any unallocated excess from Needs — flows into Blow It',
-    balance: 0.79, color: '#f59e0b', type: 'pod',
-    children: [
-      { id: 'blow-it', label: 'Blow It', emoji: '🎉', balance: 0, color: '#f97316', type: 'leaf', note: 'Guilt-free discretionary — no rules, no tracking' },
-    ]
-  },
-  {
-    id: 'emergency-fund', label: 'Emergency Fund', emoji: '🆘',
-    balance: 0, goal: 1000, goalDate: 'Dec 31, 2026',
-    amountLabel: '30% of 10% remainder',
-    color: '#22c55e', type: 'leaf',
-    sublabel: '30% of the 10% Paycheck remainder routes directly to One Finance HYSA — $1k goal for 2026',
-    note: 'One Finance High Yield Savings Account · PNC as backup',
-  },
-  {
-    id: 'bachelor', label: "Justin's Bachelor Party", emoji: '🎊',
-    balance: 176.70, goal: 600, goalDate: 'Aug 31, 2026', goalPerPaycheck: 45,
-    color: '#8b5cf6', type: 'leaf',
-    note: '$176.70 seed moved in · $45/paycheck until Aug 31',
-  },
-  ]
-};
+// FLOW_DATA loaded from DATA.js
 
 /* ══════════════════════════════════════════════════
    MONEY FLOW COMPONENT
@@ -1014,7 +818,7 @@ function MoneyFlow({ payoffMap = {} }) {
 /* ══════════════════════════════════════════════════
    LOCK SCREEN
 ══════════════════════════════════════════════════ */
-const CORRECT_PIN = '5555';
+// CORRECT_PIN is loaded from DATA.js
 
 function LockScreen({ onUnlock }) {
   const [pin, setPin] = useState('');

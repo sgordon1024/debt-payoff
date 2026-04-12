@@ -1,0 +1,5 @@
+# Real financial data — keep local only
+DATA.js
+
+# macOS
+.DS_Store
