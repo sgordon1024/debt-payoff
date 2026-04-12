@@ -1660,7 +1660,7 @@ function App() {
 
         {/* ── DEBT CARDS (Avalanche) ── */}
         <div style={{ ...label, marginBottom: 14 }}>Debt Accounts — Priority Order (Avalanche)</div>
-        <div className="debt-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 12 }>
+        <div className="debt-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 12 }}>
           {debts.filter(d => !d.longTerm).map((d, i) => {
             const focusId = plan.results
               .filter(r => !r.done && !r.longTerm)
@@ -1679,7 +1679,7 @@ function App() {
 
         {/* ── FIXED OBLIGATIONS ── */}
         <div style={{ ...label, marginTop: 32, marginBottom: 14 }}>Long-Term Loans — Minimum Only</div>
-        <div className="debt-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 12 }>
+        <div className="debt-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))', gap: 12 }}>
           {debts.filter(d => d.longTerm).map((d, i) => (
             <DebtCard
               key={d.id}
