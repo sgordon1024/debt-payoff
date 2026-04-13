@@ -237,6 +237,25 @@ const $fc = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: '
 const fmtDate = d => d ? new Date(d).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '—';
 
 /* ══════════════════════════════════════════════════
+   BLUR CONTEXT — privacy toggle
+══════════════════════════════════════════════════ */
+const BlurCtx = React.createContext(false);
+function Num({ children }) {
+  const b = React.useContext(BlurCtx);
+  return (
+    <span style={{
+      filter: b ? 'blur(6px)' : 'none',
+      userSelect: b ? 'none' : 'auto',
+      transition: 'filter 0.25s',
+      display: 'inline-block',
+      borderRadius: 3,
+    }}>
+      {children}
+    </span>
+  );
+}
+
+/* ══════════════════════════════════════════════════
    STYLES
 ══════════════════════════════════════════════════ */
 const card = {
@@ -271,12 +290,12 @@ function ChartTooltip({ active, payload, label }) {
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: p.color, flexShrink: 0, display: 'inline-block' }} />
             {p.name}
           </span>
-          <span style={{ color: '#dde1f0', fontWeight: 600 }}>{$f(p.value)}</span>
+          <span style={{ color: '#dde1f0', fontWeight: 600 }}><Num>{$f(p.value)}</Num></span>
         </div>
       ))}
       <div style={{ marginTop: 7, paddingTop: 7, borderTop: '1px solid #2a2b44', display: 'flex', justifyContent: 'space-between' }}>
         <span style={{ color: '#8b91b0' }}>Total</span>
-        <span style={{ color: '#fff', fontWeight: 700 }}>{$f(total)}</span>
+        <span style={{ color: '#fff', fontWeight: 700 }}><Num>{$f(total)}</Num></span>
       </div>
     </div>
   );
@@ -354,7 +373,7 @@ function DebtCard({ debt, result, index, isFocus }) {
 
       {/* Balance — primary colored element */}
       <div style={{ fontSize: 30, fontWeight: 800, color: debt.color, letterSpacing: '-0.02em', lineHeight: 1 }}>
-        {$fc(debt.balance)}
+        <Num>{$fc(debt.balance)}</Num>
       </div>
       <div style={{ fontSize: 11, color: '#6b718e', marginTop: 3, marginBottom: 14 }}>
         current balance
@@ -364,7 +383,7 @@ function DebtCard({ debt, result, index, isFocus }) {
       <div style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 6 }}>
           <div style={label}>Monthly Payment</div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#dde1f0' }}>{$f(debt.payment)}/mo</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#dde1f0' }}><Num>{$f(debt.payment)}</Num>/mo</div>
         </div>
 
         {minimum !== null ? (
@@ -390,13 +409,13 @@ function DebtCard({ debt, result, index, isFocus }) {
                 <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#2a2d45', flexShrink: 0 }} />
                 <div>
                   <div style={{ fontSize: 10, color: '#6b718e' }}>Minimum{debt.minEstimated ? ' (est.)' : ''}</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#9095b0' }}>{$f(minimum)}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#9095b0' }}><Num>{$f(minimum)}</Num></div>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: 10, color: '#6b718e' }}>Extra toward debt</div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#9095b0' }}>+{$f(extra)}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#9095b0' }}>+<Num>{$f(extra)}</Num></div>
                 </div>
                 <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#404570', flexShrink: 0 }} />
               </div>
@@ -426,13 +445,13 @@ function DebtCard({ debt, result, index, isFocus }) {
         <div style={{ background: '#0d0d16', borderRadius: 7, padding: '8px 10px' }}>
           <div style={label}>Interest Cost</div>
           <div style={{ fontSize: 13, fontWeight: 700, color: interest > 1000 ? '#ef4444' : '#dde1f0', marginTop: 3 }}>
-            {$f(interest)}
+            <Num>{$f(interest)}</Num>
           </div>
         </div>
         <div style={{ background: '#0d0d16', borderRadius: 7, padding: '8px 10px' }}>
           <div style={label}>Projected Payoff</div>
           <div style={{ fontSize: 12, fontWeight: 700, color: payoff ? '#00d68f' : '#6b718e', marginTop: 3, whiteSpace: 'nowrap' }}>
-            {payoff ? fmtDate(payoff) : '—'}
+            <Num>{payoff ? fmtDate(payoff) : '—'}</Num>
           </div>
         </div>
       </div>
@@ -450,12 +469,12 @@ function DebtCard({ debt, result, index, isFocus }) {
           gap: 10,
         }}>
           <div style={{ fontSize: 28, fontWeight: 800, color: '#dde1f0', lineHeight: 1, letterSpacing: '-0.02em' }}>
-            {monthsLeft}
+            <Num>{monthsLeft}</Num>
           </div>
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#9095b0' }}>months to payoff</div>
             <div style={{ fontSize: 10, color: '#6b718e', marginTop: 1 }}>
-              Then {$f(debt.payment)}/mo cascades to next
+              Then <Num>{$f(debt.payment)}</Num>/mo cascades to next
             </div>
           </div>
           {/* Progress dots */}
@@ -535,7 +554,7 @@ function StatCard({ lbl, value, sub, color, className }) {
   return (
     <div className={className} style={{ ...card, display: 'flex', flexDirection: 'column', gap: 2 }}>
       <div style={label}>{lbl}</div>
-      <div style={{ ...val, color: color || '#dde1f0', fontSize: 22 }}>{value}</div>
+      <div style={{ ...val, color: color || '#dde1f0', fontSize: 22 }}><Num>{value}</Num></div>
       {sub && <div style={{ fontSize: 12, color: '#6b718e' }}>{sub}</div>}
     </div>
   );
@@ -750,7 +769,7 @@ function MoneyFlow({ payoffMap = {} }) {
                     fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em',
                     color: node.balance > 0 ? node.color : 'var(--faint)',
                   }}>
-                    {$fc(node.balance)}
+                    <Num>{$fc(node.balance)}</Num>
                   </span>
                   <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 4 }}>in pod</span>
                 </div>
@@ -760,7 +779,7 @@ function MoneyFlow({ payoffMap = {} }) {
               {amt && (
                 <div style={{ marginBottom: 4 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--muted)', letterSpacing: '-0.01em' }}>
-                    {amt}
+                    <Num>{amt}</Num>
                   </span>
                   {node.amount != null && (
                     <span style={{ fontSize: 11, color: 'var(--faint)', marginLeft: 4 }}>/paycheck</span>
@@ -785,10 +804,10 @@ function MoneyFlow({ payoffMap = {} }) {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>
-                      {$fc(node.balance || 0)} <span style={{ color: 'var(--faint)', fontWeight: 400 }}>/ {$fc(node.goal)}</span>
+                      <Num>{$fc(node.balance || 0)}</Num> <span style={{ color: 'var(--faint)', fontWeight: 400 }}>/ <Num>{$fc(node.goal)}</Num></span>
                     </span>
                     {node.goalPerPaycheck && (
-                      <span style={{ fontSize: 11, color: node.color, fontWeight: 700 }}>+{$fc(node.goalPerPaycheck)}/paycheck</span>
+                      <span style={{ fontSize: 11, color: node.color, fontWeight: 700 }}>+<Num>{$fc(node.goalPerPaycheck)}</Num>/paycheck</span>
                     )}
                   </div>
                 </div>
@@ -1000,6 +1019,7 @@ function App() {
   const [visibleIds, setVisibleIds]   = useState(() => new Set(DEBTS.filter(d => !d.longTerm).map(d => d.id)));
   const [useToday, setUseToday]       = useState(false);
   const [showLongTerm, setShowLongTerm] = useState(false);
+  const [blurred, setBlurred]   = useState(false);
   const simStartDate = useToday ? new Date() : START_DATE;
 
   useEffect(() => {
@@ -1078,6 +1098,7 @@ function App() {
   const wnWfOnTrack = wfR?.payoffMonth && wfR.payoffMonth < wnDeadlineMonths;
 
   return (
+    <BlurCtx.Provider value={blurred}>
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 60 }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '28px 16px' }}>
 
@@ -1132,6 +1153,24 @@ function App() {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
               {apiStatus === 'loading' ? 'Connecting to Sequence…' : apiStatus === 'live' ? 'Live · Sequence.io' : 'Static snapshot'}
             </div>
+            {/* Privacy blur toggle */}
+            <button
+              onClick={() => setBlurred(b => !b)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 14px', borderRadius: 8,
+                border: `1px solid ${blurred ? 'rgba(99,102,241,0.5)' : 'var(--border)'}`,
+                background: blurred ? 'rgba(99,102,241,0.12)' : 'var(--card)',
+                color: blurred ? 'var(--accent)' : 'var(--muted)',
+                fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
+                cursor: 'pointer', fontFamily: 'inherit',
+                transition: 'all 0.2s ease',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+            >
+              <span style={{ fontSize: 14 }}>{blurred ? '👁' : '🙈'}</span>
+              {blurred ? 'Show Numbers' : 'Hide Numbers'}
+            </button>
           </div>
         </div>
 
@@ -1200,7 +1239,7 @@ function App() {
                 interval={2}
               />
               <YAxis
-                tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
+                tickFormatter={v => blurred ? '••••' : `$${(v / 1000).toFixed(0)}k`}
                 tick={{ fill: '#6b718e', fontSize: 10 }}
                 axisLine={false} tickLine={false}
                 width={40}
@@ -1302,7 +1341,7 @@ function App() {
               </div>
             </div>
             <div style={{ fontSize: 32, fontWeight: 800, color: 'var(--accent)', letterSpacing: '-0.02em' }}>
-              +{$f(extra)}<span style={{ fontSize: 14, fontWeight: 500, color: 'var(--muted)' }}>/mo</span>
+              +<Num>{$f(extra)}</Num><span style={{ fontSize: 14, fontWeight: 500, color: 'var(--muted)' }}>/mo</span>
             </div>
           </div>
 
@@ -1360,7 +1399,7 @@ function App() {
                 <div style={{ fontSize: 20, minWidth: 24, textAlign: 'center' }}>{s.icon}</div>
                 <div>
                   <div style={label}>{s.lbl}</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: s.color, marginTop: 2 }}>{s.val}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: s.color, marginTop: 2 }}><Num>{s.val}</Num></div>
                   <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 1 }}>{s.sub}</div>
                 </div>
               </div>
@@ -1392,21 +1431,21 @@ function App() {
                       {wnNextD.name}
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>
-                      {$f(wnNextD.balance)} remaining &middot; {$f(wnNextD.payment)}/mo going in
+                      <Num>{$f(wnNextD.balance)}</Num> remaining &middot; <Num>{$f(wnNextD.payment)}</Num>/mo going in
                     </div>
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     <div style={{ fontSize: 19, fontWeight: 800, color: '#00d68f', letterSpacing: '-0.01em' }}>
-                      {fmtDate(wnNextR.payoffDate)}
+                      <Num>{fmtDate(wnNextR.payoffDate)}</Num>
                     </div>
                     <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 3 }}>
-                      {wnNextR.payoffMonth} months away
+                      <Num>{wnNextR.payoffMonth}</Num> months away
                     </div>
                   </div>
                 </div>
                 {wnAfterD && wnAfterR && (
                   <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--border)', fontSize: 12, color: 'var(--muted)' }}>
-                    Then <span style={{ color: 'var(--text)', fontWeight: 700 }}>{$f(wnNextD.payment)}/mo</span> cascades to <span style={{ color: 'var(--text)', fontWeight: 700 }}>{wnAfterD.name}</span> &mdash; paid off <span style={{ color: 'var(--text)', fontWeight: 600 }}>{fmtDate(wnAfterR.payoffDate)}</span>
+                    Then <span style={{ color: 'var(--text)', fontWeight: 700 }}><Num>{$f(wnNextD.payment)}</Num>/mo</span> cascades to <span style={{ color: 'var(--text)', fontWeight: 700 }}>{wnAfterD.name}</span> &mdash; paid off <span style={{ color: 'var(--text)', fontWeight: 600 }}><Num>{fmtDate(wnAfterR.payoffDate)}</Num></span>
                   </div>
                 )}
               </div>
@@ -1424,8 +1463,8 @@ function App() {
                       borderRadius: 8, padding: '10px 14px', flex: '1 1 110px',
                     }}>
                       <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{d.short}</div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)' }}>{fmtDate(m.payoffDate)}</div>
-                      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{m.payoffMonth} mo away</div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: 'var(--text)' }}><Num>{fmtDate(m.payoffDate)}</Num></div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}><Num>{m.payoffMonth}</Num> mo away</div>
                     </div>
                   );
                 })}
@@ -1452,7 +1491,7 @@ function App() {
                   <div style={{ fontSize: 14, fontWeight: 800, color: wnWfOnTrack ? '#00d68f' : '#ef4444' }}>
                     {wnWfOnTrack ? 'On Track' : 'At Risk'}
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>Projected: {fmtDate(wfR.payoffDate)}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>Projected: <Num>{fmtDate(wfR.payoffDate)}</Num></div>
                 </div>
               </div>
             )}
@@ -1513,6 +1552,7 @@ function App() {
 
       </div>
     </div>
+    </BlurCtx.Provider>
   );
 }
 
