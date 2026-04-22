@@ -70,6 +70,7 @@ const DEBTS = [
     apr:        31.75,
     payment:    2393,    // ← UPDATE when cascade hits (freed minimums pile here)
     minimum:     424.66,
+    dueDay:       19,    // ← UPDATE: day of month payment is due (check statement)
     color: '#ef4444', priority: 1, type: 'loan',
     note: 'All freed minimums routed here — cascades to Amex when paid off',
   },
@@ -79,6 +80,7 @@ const DEBTS = [
     apr:        29.99,
     payment:      396,
     minimum:      394.81,
+    dueDay:       25,    // ← UPDATE: check Amex statement
     color: '#3b82f6', priority: 2, type: 'credit',
     note: 'Minimum only until Upstart is paid off',
   },
@@ -88,6 +90,7 @@ const DEBTS = [
     apr:        29.10,
     payment:       70,
     minimum:       69,
+    dueDay:        7,    // ← UPDATE: check Citibank statement
     color: '#f97316', priority: 3, type: 'credit',
     note: 'Minimum only — stop new purchases',
   },
@@ -97,6 +100,7 @@ const DEBTS = [
     apr:        28.99,
     payment:      150,
     minimum:       41.37,
+    dueDay:       24,    // ← UPDATE: check Wells Fargo statement
     color: '#fbbf24', priority: 4, type: 'credit',
     danger: true, deferredDeadline: 'Jan 24, 2027',
     note: 'Paying above minimum to clear deferred interest before deadline',
@@ -107,6 +111,7 @@ const DEBTS = [
     apr:        27.49,
     payment:       36,
     minimum:       35,
+    dueDay:       25,    // ← UPDATE: check Chase statement
     color: '#22d3ee', priority: 5, type: 'credit',
     note: 'Minimum only',
   },
@@ -116,6 +121,7 @@ const DEBTS = [
     apr:        25.49,
     payment:       46,
     minimum:       46,
+    dueDay:       11,    // ← UPDATE: check Wallet app
     color: '#a855f7', priority: 6, type: 'credit',
   },
   {
@@ -124,6 +130,7 @@ const DEBTS = [
     apr:        20.99,
     payment:      208,
     minimum:      206.88,
+    dueDay:        1,    // ← UPDATE: check Upgrade statement
     color: '#ec4899', priority: 7, type: 'credit',
   },
   {
@@ -132,6 +139,7 @@ const DEBTS = [
     apr:        14.74,
     payment:      118,
     minimum:      117.30,
+    dueDay:        5,    // ← UPDATE: check Roadrunner statement
     color: '#14b8a6', priority: 8, type: 'loan',
   },
   {
@@ -140,6 +148,7 @@ const DEBTS = [
     apr:          0,
     payment:      170,
     minimum:      170,
+    dueDay:       20,    // ← UPDATE: check Fidelity statement
     color: '#6366f1', priority: 9, type: 'credit',
     promoEnd: 'Sep 2027',
     note: 'True 0% until Sep 2027 — pay minimums only',
@@ -153,6 +162,7 @@ const DEBTS = [
     apr:          8.74,
     payment:      1700,
     minimum:      1690.71,
+    dueDay:        1,    // ← UPDATE: check U.S. Bank — autopay likely 1st
     color: '#78716c', priority: 10, type: 'loan', longTerm: true,
     note: 'REC loan, matures Jan 2045. $850 biweekly autopay (~$1,700/mo). Cascade hits here after Fidelity.',
   },
@@ -162,6 +172,7 @@ const DEBTS = [
     apr:          6.625,
     payment:       491,
     minimum:       491,
+    dueDay:        3,    // ← UPDATE: check Aidvantage portal
     color: '#64748b', priority: 11, type: 'loan', longTerm: true,
     note: 'Federal student loan — cascade hits after Van is paid off.',
   },
@@ -171,6 +182,7 @@ const DEBTS = [
     apr:          5.65,
     payment:       194.18,
     minimum:       194.18,
+    dueDay:       21,    // ← UPDATE: check Earnest app
     color: '#0ea5e9', priority: 12, type: 'loan', longTerm: true,
     note: 'Private student loan — final debt in the cascade.',
   },

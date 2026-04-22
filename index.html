@@ -835,6 +835,270 @@ function MoneyFlow({ payoffMap = {} }) {
 }
 
 /* ══════════════════════════════════════════════════
+   NAV BAR
+══════════════════════════════════════════════════ */
+function NavBar({ page, setPage, blurred, setBlurred }) {
+  return (
+    <div style={{
+      position: 'sticky', top: 0, zIndex: 100,
+      background: 'rgba(9,9,15,0.88)',
+      backdropFilter: 'blur(14px)',
+      WebkitBackdropFilter: 'blur(14px)',
+      borderBottom: '1px solid var(--border)',
+    }}>
+      <div style={{
+        maxWidth: 1280, margin: '0 auto',
+        padding: '0 16px',
+        display: 'flex', alignItems: 'center',
+      }}>
+        <span style={{ fontSize: 18, marginRight: 14, userSelect: 'none', lineHeight: 1 }}>💸</span>
+        {[
+          { id: 'dashboard', label: 'Dashboard' },
+          { id: 'roadmap',   label: 'Payoff Order' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setPage(tab.id)}
+            style={{
+              padding: '15px 14px 13px',
+              border: 'none', background: 'transparent',
+              color: page === tab.id ? 'var(--text)' : 'var(--muted)',
+              borderBottom: `2px solid ${page === tab.id ? 'var(--accent)' : 'transparent'}`,
+              fontSize: 13, fontWeight: page === tab.id ? 700 : 500,
+              cursor: 'pointer', fontFamily: 'inherit',
+              transition: 'all 0.15s',
+              WebkitTapHighlightColor: 'transparent',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={() => setBlurred(b => !b)}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            padding: '5px 10px', borderRadius: 7,
+            border: `1px solid ${blurred ? 'rgba(99,102,241,0.45)' : 'var(--border)'}`,
+            background: blurred ? 'rgba(99,102,241,0.1)' : 'transparent',
+            color: blurred ? 'var(--accent)' : 'var(--muted)',
+            fontSize: 11, fontWeight: 700,
+            cursor: 'pointer', fontFamily: 'inherit',
+            transition: 'all 0.2s',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+        >
+          <span style={{ fontSize: 13 }}>{blurred ? '👁' : '🙈'}</span>
+          {blurred ? 'Show' : 'Hide'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
+   ROADMAP PAGE
+══════════════════════════════════════════════════ */
+function nextDueDate(dueDay) {
+  if (!dueDay) return null;
+  const now = new Date();
+  const d   = new Date(now.getFullYear(), now.getMonth(), dueDay);
+  return d <= now ? new Date(now.getFullYear(), now.getMonth() + 1, dueDay) : d;
+}
+function fmtDue(dueDay) {
+  const d = nextDueDate(dueDay);
+  if (!d) return '—';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function RoadRow({ debt, result, isFocus, isLast }) {
+  const payoffDate = result?.payoffDate ? fmtDate(result.payoffDate) : null;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'stretch' }}>
+
+      {/* ── Left spine ── */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: 46, flexShrink: 0 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+          background: isFocus ? debt.color : '#0d0d16',
+          border: `2px solid ${isFocus ? debt.color : '#252540'}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 12, fontWeight: 800,
+          color: isFocus ? '#fff' : debt.color,
+          boxShadow: isFocus ? `0 0 0 5px ${debt.color}20` : 'none',
+          transition: 'all 0.25s',
+          zIndex: 1,
+        }}>
+          {debt.priority}
+        </div>
+        {!isLast && (
+          <div style={{ flex: 1, width: 2, minHeight: 20, background: '#1a1a2e', margin: '5px 0' }} />
+        )}
+      </div>
+
+      {/* ── Content ── */}
+      <div style={{ flex: 1, paddingLeft: 14, paddingBottom: isLast ? 0 : 24, paddingTop: 3 }}>
+
+        {/* Name row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10, marginBottom: 7 }}>
+          <div>
+            <div style={{
+              fontSize: isFocus ? 16 : 14, fontWeight: 700, lineHeight: 1.2,
+              color: isFocus ? 'var(--text)' : 'var(--muted)',
+              marginBottom: isFocus ? 5 : 0,
+            }}>
+              {debt.name}
+            </div>
+            {isFocus && (
+              <span style={{
+                display: 'inline-block',
+                fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
+                padding: '2px 7px', borderRadius: 3,
+                background: debt.color + '22', color: debt.color,
+                border: `1px solid ${debt.color}40`,
+              }}>
+                🎯 current focus
+              </span>
+            )}
+          </div>
+
+          {/* Balance */}
+          <div style={{ textAlign: 'right', flexShrink: 0 }}>
+            <div style={{
+              fontSize: isFocus ? 22 : 15, fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1,
+              color: isFocus ? debt.color : '#4a4f70',
+            }}>
+              <Num>{$fc(debt.balance)}</Num>
+            </div>
+          </div>
+        </div>
+
+        {/* Pills row */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {payoffDate && (
+            <span style={{
+              fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 5,
+              background: '#0d0d16',
+              border: `1px solid ${isFocus ? '#00d68f30' : 'var(--border)'}`,
+              color: isFocus ? '#00d68f' : 'var(--muted)',
+              whiteSpace: 'nowrap',
+            }}>
+              🏁 <Num>{payoffDate}</Num>
+            </span>
+          )}
+          <span style={{
+            fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 5,
+            background: '#0d0d16', border: '1px solid var(--border)',
+            color: 'var(--muted)', whiteSpace: 'nowrap',
+          }}>
+            📅 <Num>{fmtDue(debt.dueDay)}</Num>
+          </span>
+          <span style={{
+            fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 5,
+            background: '#0d0d16', border: '1px solid var(--border)',
+            color: 'var(--muted)', whiteSpace: 'nowrap',
+          }}>
+            <Num>{$f(debt.payment)}</Num>/mo
+          </span>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+function RoadmapPage({ plan, debts }) {
+  const consumer = debts.filter(d => !d.longTerm).sort((a, b) => a.priority - b.priority);
+  const longTerm  = debts.filter(d => d.longTerm).sort((a, b) => a.priority - b.priority);
+
+  const focusId = consumer.find(d => {
+    const r = plan.results.find(r => r.id === d.id);
+    return d.balance > 0 && !r?.done;
+  })?.id;
+
+  const totalBalance = debts.reduce((s, d) => s + d.balance, 0);
+
+  return (
+    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '36px 16px 80px' }}>
+
+        {/* Page header */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 6 }}>
+            The Plan
+          </div>
+          <h2 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', lineHeight: 1, margin: 0 }}>
+            Payoff Roadmap
+          </h2>
+          <div style={{ display: 'flex', gap: 16, marginTop: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+              {consumer.length + longTerm.length} accounts
+            </span>
+            <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+              <Num>{$f(totalBalance)}</Num> total
+            </span>
+            <span style={{ fontSize: 13, color: 'var(--muted)' }}>
+              Avalanche — highest APR first
+            </span>
+          </div>
+        </div>
+
+        {/* ── Consumer debts ── */}
+        <div style={{
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+          color: 'var(--faint)', marginBottom: 20, paddingLeft: 46,
+        }}>
+          Consumer · {consumer.length} accounts
+        </div>
+
+        {consumer.map((d, i) => (
+          <RoadRow
+            key={d.id}
+            debt={d}
+            result={plan.results.find(r => r.id === d.id)}
+            isFocus={d.id === focusId}
+            isLast={i === consumer.length - 1}
+          />
+        ))}
+
+        {/* ── Cascade divider ── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '32px 0' }}>
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase',
+            color: 'var(--faint)', whiteSpace: 'nowrap',
+          }}>
+            Consumer debts cleared · Cascade continues ↓
+          </div>
+          <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+        </div>
+
+        {/* ── Long-term loans ── */}
+        <div style={{
+          fontSize: 10, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+          color: 'var(--faint)', marginBottom: 20, paddingLeft: 46,
+        }}>
+          Long-Term · {longTerm.length} accounts
+        </div>
+
+        {longTerm.map((d, i) => (
+          <RoadRow
+            key={d.id}
+            debt={d}
+            result={plan.results.find(r => r.id === d.id)}
+            isFocus={false}
+            isLast={i === longTerm.length - 1}
+          />
+        ))}
+
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════
    LOCK SCREEN
 ══════════════════════════════════════════════════ */
 // CORRECT_PIN is loaded from DATA.js
@@ -1020,6 +1284,7 @@ function App() {
   const [useToday, setUseToday]       = useState(false);
   const [showLongTerm, setShowLongTerm] = useState(false);
   const [blurred, setBlurred]   = useState(false);
+  const [page, setPage]         = useState('dashboard');
   const simStartDate = useToday ? new Date() : START_DATE;
 
   useEffect(() => {
@@ -1099,6 +1364,10 @@ function App() {
 
   return (
     <BlurCtx.Provider value={blurred}>
+    <NavBar page={page} setPage={setPage} blurred={blurred} setBlurred={setBlurred} />
+    {page === 'roadmap' ? (
+      <RoadmapPage plan={plan} debts={debts} />
+    ) : (
     <div style={{ background: 'var(--bg)', minHeight: '100vh', paddingBottom: 60 }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '28px 16px' }}>
 
@@ -1153,24 +1422,6 @@ function App() {
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'currentColor', display: 'inline-block' }} />
               {apiStatus === 'loading' ? 'Connecting to Sequence…' : apiStatus === 'live' ? 'Live · Sequence.io' : 'Static snapshot'}
             </div>
-            {/* Privacy blur toggle */}
-            <button
-              onClick={() => setBlurred(b => !b)}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6,
-                padding: '6px 14px', borderRadius: 8,
-                border: `1px solid ${blurred ? 'rgba(99,102,241,0.5)' : 'var(--border)'}`,
-                background: blurred ? 'rgba(99,102,241,0.12)' : 'var(--card)',
-                color: blurred ? 'var(--accent)' : 'var(--muted)',
-                fontSize: 11, fontWeight: 700, letterSpacing: '0.04em',
-                cursor: 'pointer', fontFamily: 'inherit',
-                transition: 'all 0.2s ease',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-            >
-              <span style={{ fontSize: 14 }}>{blurred ? '👁' : '🙈'}</span>
-              {blurred ? 'Show Numbers' : 'Hide Numbers'}
-            </button>
           </div>
         </div>
 
@@ -1552,6 +1803,7 @@ function App() {
 
       </div>
     </div>
+    )}
     </BlurCtx.Provider>
   );
 }
